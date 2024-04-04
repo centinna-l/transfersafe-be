@@ -8,15 +8,15 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cors());
 
-// const db = require("./Models/");
-// db.sequelize
-//   .sync()
-//   .then(() => {
-//     console.log("Synced db.");
-//   })
-//   .catch((err) => {
-//     console.log("Failed to sync db: " + err.message);
-//   });
+const db = require("./Models/");
+db.sequelize
+  .sync()
+  .then(() => {
+    console.log("Synced db.");
+  })
+  .catch((err) => {
+    console.log("Failed to sync db: " + err.message);
+  });
 
 app.get("/", (req, res) => {
   res.json({ message: "Transfersafe (Backend)" });

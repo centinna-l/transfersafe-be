@@ -15,16 +15,16 @@ module.exports = (app) => {
     return res.json({ encryptedKey });
   });
 
-  router.post("/decrypt", (req, res) => {
+  router.post("/decrypt", async (req, res) => {
     const { key } = req.body;
 
     if (!key) {
       return res.status(400).json({ error: "Key to decrypt is required" });
     }
 
-    const decryptedKey = transfersafe.decrypt(key);
+    const file_url = await transfersafe.decrypt(key);
 
-    return res.json(decryptedKey);
+    return res.json({ file_url });
   });
 
   app.use("/api", router);
