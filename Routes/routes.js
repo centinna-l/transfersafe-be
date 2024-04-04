@@ -23,9 +23,9 @@ module.exports = (app) => {
   router.post("/decrypt", async (req, res) => {
     const { key } = req.body;
 
-    if (!key) {
-      return res.status(400).json({ error: "Key to decrypt is required" });
-    }
+    // if (!key) {
+    //   return res.status(400).json({ error: "Key to decrypt is required" });
+    // }
 
     const file_url = await transfersafe.decrypt(key);
 

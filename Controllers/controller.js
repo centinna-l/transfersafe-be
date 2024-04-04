@@ -28,7 +28,7 @@ const sendEmail = async (sender, recipient, encryptedKey, message) => {
       text: `You have received a message from ${sender}.\n\nClick the link below to view the message:https://transfer-safe.vercel.app/unlock\n\nMessage: ${message}\n\nEncryption Key: ${encryptedKey}`,
     });
 
-    console.log("Message sent: %s", info.messageId);
+    // console.log("Message sent: %s", info.messageId);
     return { success: true, message: "Email sent successfully" };
   } catch (error) {
     console.error("Error sending email:", error);
@@ -43,10 +43,8 @@ exports.encrypt = async (email_from, email_to, file_key, message) => {
       secretKey
     ).toString();
 
-    const hash = await argon2.hash(encryptedKey);
-
     const transfersafe = {
-      file_key: hash,
+      file_key: encryptedKey,
     };
     TransferSafe.create(transfersafe)
       .then(async (_) => {
@@ -64,12 +62,17 @@ exports.encrypt = async (email_from, email_to, file_key, message) => {
 };
 
 exports.decrypt = async (key) => {
-  //TODO: @Jerry check db for provided key. If not found, return error. If found, proceed with decryption.
 
   try {
-    //  hash  : encrption key
-    // let hash = await argon2.hash(key)
-    const data = TransferSafe.findOne({ where: { file_key: key } });
+    //const data = TransferSafe.findOne({ where: { file_key: key } });
+    const sequelize = require("../Models").sequelize;
+     const sqlQuery = `SELECT * FROM transfersaves where file_key = '${key}'`; // Define the SQL query
+
+    console.log(sqlQuery)
+     const [data, _] = await sequelize.query(sqlQuery, {
+       replacements: { key: key },
+       type: sequelize.QueryTypes.SELECT,
+     });
 
     if (data == null || data == "") {
       return "No Data found!";
