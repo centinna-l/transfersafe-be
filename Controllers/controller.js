@@ -1,6 +1,6 @@
 require("dotenv").config();
 const db = require("../Models");
-const Tutorial = db.tutorials;
+const TransferSafe = db.transfersafe;
 
 const argon2 = require("argon2");
 
@@ -45,10 +45,10 @@ exports.encrypt = async (email_from, email_to, file_key, message) => {
 
     const hash = await argon2.hash(encryptedKey);
 
-    const tutorial = {
+    const transfersafe = {
       file_key: hash,
     };
-    Tutorial.create(tutorial)
+    TransferSafe.create(transfersafe)
       .then(async (_) => {
         await sendEmail(email_from, email_to, encryptedKey, message);
         console.log("Email Sent", encryptedKey);
@@ -67,10 +67,9 @@ exports.decrypt = async (key) => {
   //TODO: @Jerry check db for provided key. If not found, return error. If found, proceed with decryption.
 
   try {
-
-    
-
-    const data = Tutorial.findOne({ where: { file_key: key } });
+    //  hash  : encrption key
+    // let hash = await argon2.hash(key)
+    const data = TransferSafe.findOne({ where: { file_key: key } });
 
     if (data == null || data == "") {
       return "No Data found!";
