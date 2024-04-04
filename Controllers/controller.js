@@ -5,7 +5,10 @@ const Op = db.Sequelize.Op;
 
 const nodemailer = require("nodemailer");
 
-// Create and Save a new Tutorial
+const CryptoJS = require("crypto-js");
+const secretKey = "=Zu3p~GH^t1dZk#f#g*Ry!D#_#:pkQssM=NHAr%7z#,:!rB:3~";
+
+// TODO: @Jerry, fix this. Create and Save a new Tutorial
 exports.create = (req, res) => {
   // Validate request
   if (!req.body.title) {
@@ -37,7 +40,7 @@ exports.create = (req, res) => {
     });
 };
 
-// Retrieve all Tutorials from the database.
+// TODO: @Jerry, fix this. Retrieve all Tutorials from the database.
 exports.findAll = (req, res) => {
   const title = req.query.title;
   var condition = title ? { title: { [Op.iLike]: `%${title}%` } } : null;
@@ -54,7 +57,7 @@ exports.findAll = (req, res) => {
     });
 };
 
-// Find a single Tutorial with an id
+// TODO: @Jerry, fix this. Find a single Tutorial with an id
 exports.findOne = (req, res) => {
   const id = req.params.id;
 
@@ -69,42 +72,52 @@ exports.findOne = (req, res) => {
     });
 };
 
-exports.sendEmail = (req, res) => {
-  const id = req.params.id;
+// Jolson's functions:
+exports.sendEmail = async (sender, recipient, encryptedKey, message) => {
+  try {
+    let transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
 
-  let transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      type: "OAuth2",
-      user: process.env.email,
-      pass: process.env.password,
-      clientId: process.env.client_id,
-      clientSecret: process.env.client_secret,
-      refreshToken: process.env.refreshToken,
-    },
-  });
-  let mailOptions = {
-    from: "jerryjoy99@gmail.com",
-    to: "aryanxarora@gmail.com ",
-    subject: "Transfer Safe Project",
-    text: "Welcome to the Gaandu Project, sent from the sexy API made by me",
-  };
-  transporter.sendMail(mailOptions, function (err, data) {
-    if (err) {
-      console.log("Error " + err);
-    } else {
-      console.log("Email sent successfully");
-      return res.json({ message: "Email sent" });
-    }
-  });
-  //   Tutorial.findByPk(id)
-  //     .then((data) => {
+    console.log(process.env.EMAIL_USER, process.env.EMAIL_PASS);
 
-  //       res.json({ data });
-  //     })
-  //     .catch((err) => {
-  //       res.status(500).send({
-  //         message: "Error retrieving Tutorial with id=" + id,
-  //       });
-  //     });
+    let info = await transporter.sendMail({
+      from: `"TransferSafe" <${process.env.EMAIL_USER}>`,
+      to: recipient,
+      subject: `TransferSafe from ${sender}`,
+      text: `You have received a message from ${sender}.\n\nClick the link below to view the message:https://transfer-safe.vercel.app/unlock\n\nMessage: ${message}\n\nEncryption Key: ${encryptedKey}`,
+    });
+
+    console.log("Message sent: %s", info.messageId);
+    return { success: true, message: "Email sent successfully" };
+  } catch (error) {
+    console.error("Error sending email:", error);
+    return { success: false, message: "Failed to send email" };
+  }
+};
+
+exports.encrypt = (sender, recipient, file, message) => {
+  const encryptedKey = CryptoJS.AES.encrypt(
+    JSON.stringify({ sender, recipient, file, message }),
+    secretKey
+  ).toString();
+
+  //TODO: @Jerry create db entry. Once done, proceed with sending email.
+  exports.sendEmail(sender, recipient, encryptedKey, message);
+
+  return encryptedKey;
+};
+
+exports.decrypt = (key) => {
+  //TODO: @Jerry check db for provided key. If not found, return error. If found, proceed with decryption.
+
+  const decryptedKey = CryptoJS.AES.decrypt(key, secretKey).toString(
+    CryptoJS.enc.Utf8
+  );
+
+  return JSON.parse(decryptedKey).file;
 };

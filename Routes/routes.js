@@ -1,15 +1,31 @@
 module.exports = (app) => {
-  const tutorials = require("../Controllers/controller");
+  const transfersafe = require("../Controllers/controller");
 
   var router = require("express").Router();
 
-  // Create a new Tutorial
-  router.get("/", (req, res) => {
-    res.json({ message: "Welcome to Gaandu Application." });
+  router.post("/encrypt", (req, res) => {
+    const { sender, recipient, file, message } = req.body;
+
+    if (!sender || !recipient || !file || !message) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    const encryptedKey = transfersafe.encrypt(sender, recipient, file, message);
+
+    return res.json({ encryptedKey });
   });
 
-  // Retrieve all Tutorials
-  router.get("/sendemail", tutorials.sendEmail);
+  router.post("/decrypt", (req, res) => {
+    const { key } = req.body;
 
-  app.use("/api/tutorials", router);
+    if (!key) {
+      return res.status(400).json({ error: "Key to decrypt is required" });
+    }
+
+    const decryptedKey = transfersafe.decrypt(key);
+
+    return res.json(decryptedKey);
+  });
+
+  app.use("/api", router);
 };
