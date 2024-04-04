@@ -3,16 +3,21 @@ module.exports = (app) => {
 
   var router = require("express").Router();
 
-  router.post("/encrypt", (req, res) => {
+  router.post("/encrypt", async (req, res) => {
     const { sender, recipient, file, message } = req.body;
 
     if (!sender || !recipient || !file || !message) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
-    const encryptedKey = transfersafe.encrypt(sender, recipient, file, message);
+    const encryptedKey = await transfersafe.encrypt(
+      sender,
+      recipient,
+      file,
+      message
+    );
 
-    return res.json({ encryptedKey });
+    return res.json({ key: encryptedKey });
   });
 
   router.post("/decrypt", async (req, res) => {

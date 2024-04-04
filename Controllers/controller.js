@@ -1,7 +1,8 @@
 require("dotenv").config();
 const db = require("../Models");
 const Tutorial = db.tutorials;
-const Op = db.Sequelize.Op;
+
+const argon2 = require("argon2");
 
 const nodemailer = require("nodemailer");
 
@@ -35,20 +36,22 @@ const sendEmail = async (sender, recipient, encryptedKey, message) => {
   }
 };
 
-exports.encrypt = (email_from, email_to, file_key, message) => {
+exports.encrypt = async (email_from, email_to, file_key, message) => {
   try {
     const encryptedKey = CryptoJS.AES.encrypt(
       JSON.stringify({ email_from, email_to, file_key, message }),
       secretKey
     ).toString();
 
+    const hash = await argon2.hash(encryptedKey);
+
     const tutorial = {
-      file_key: encryptedKey,
+      file_key: hash,
     };
     Tutorial.create(tutorial)
       .then(async (_) => {
         await sendEmail(email_from, email_to, encryptedKey, message);
-        console.log("Email Sent");
+        console.log("Email Sent", encryptedKey);
       })
       .catch((err) => {
         console.log(err.message);
@@ -60,19 +63,22 @@ exports.encrypt = (email_from, email_to, file_key, message) => {
   }
 };
 
-exports.decrypt = (key) => {
+exports.decrypt = async (key) => {
   //TODO: @Jerry check db for provided key. If not found, return error. If found, proceed with decryption.
 
   try {
-    const decryptedKey = CryptoJS.AES.decrypt(key, secretKey).toString(
-      CryptoJS.enc.Utf8
-    );
 
-    const data = Tutorial.findOne({ where: { file_key: decryptedKey } });
+    
+
+    const data = Tutorial.findOne({ where: { file_key: key } });
 
     if (data == null || data == "") {
       return "No Data found!";
     }
+
+    const decryptedKey = CryptoJS.AES.decrypt(key, secretKey).toString(
+      CryptoJS.enc.Utf8
+    );
 
     return JSON.parse(decryptedKey).file_key;
   } catch (error) {
