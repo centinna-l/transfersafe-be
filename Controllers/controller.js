@@ -39,7 +39,7 @@ const sendEmail = async (sender, recipient, encryptedKey, message) => {
 exports.encrypt = async (email_from, email_to, file_key, message) => {
   try {
     const encryptedKey = CryptoJS.AES.encrypt(
-      JSON.stringify({ email_from, email_to, file_key, message }),
+      JSON.stringify({ file_key }),
       secretKey
     ).toString();
 
@@ -55,27 +55,27 @@ exports.encrypt = async (email_from, email_to, file_key, message) => {
         console.log(err.message);
       });
 
-    return encryptedKey;
+    return `File uploaded Successfully`;
   } catch (error) {
     return error.message;
   }
 };
 
 exports.decrypt = async (key) => {
-
   try {
     //const data = TransferSafe.findOne({ where: { file_key: key } });
+    console.log(key);
     const sequelize = require("../Models").sequelize;
-     const sqlQuery = `SELECT * FROM transfersaves where file_key = '${key}'`; // Define the SQL query
+    const sqlQuery = `SELECT * FROM transfersaves where file_key = '${key}'`; // Define the SQL query
 
-    console.log(sqlQuery)
-     const [data, _] = await sequelize.query(sqlQuery, {
-       replacements: { key: key },
-       type: sequelize.QueryTypes.SELECT,
-     });
+    console.log(sqlQuery);
+    const [data, _] = await sequelize.query(sqlQuery, {
+      //  replacements: { key: key },
+      type: sequelize.QueryTypes.SELECT,
+    });
 
     if (data == null || data == "") {
-      return "No Data found!";
+      throw new Error("No data found")
     }
 
     const decryptedKey = CryptoJS.AES.decrypt(key, secretKey).toString(
@@ -84,6 +84,35 @@ exports.decrypt = async (key) => {
 
     return JSON.parse(decryptedKey).file_key;
   } catch (error) {
-    return error.message ?? "Key Is Malinformed!";
+    throw error;
+  }
+};
+
+
+exports.decryptSQL = async (key) => {
+  try {
+    //const data = TransferSafe.findOne({ where: { file_key: key } });
+    console.log(key);
+    const sequelize = require("../Models").sequelize;
+    const sqlQuery = `SELECT * FROM transfersaves where file_key = '${key}`; // Define the SQL query
+
+    console.log(sqlQuery);
+    const [data, _] = await sequelize.query(sqlQuery, {
+      //  replacements: { key: key },
+      type: sequelize.QueryTypes.SELECT,
+    });
+
+    if (data == null || data == "") {
+      throw new Error("No data found");
+    }
+
+    const decryptedKey = CryptoJS.AES.decrypt(key, secretKey).toString(
+      CryptoJS.enc.Utf8
+    );
+
+    // return JSON.parse(decryptedKey).file_key;
+    return data;
+  } catch (error) {
+    throw error;
   }
 };
