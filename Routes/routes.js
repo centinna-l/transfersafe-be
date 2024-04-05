@@ -32,25 +32,25 @@ module.exports = (app) => {
 
       return res.json({ file_url });
     } catch (error) {
-      return res.status(400).json({error: "No Data Found"})
+      return res.status(400).json({ error: "No Data Found" });
     }
   });
 
-   router.post("/decryptsql", async (req, res) => {
-     try {
-       const { key } = req.body;
+  router.post("/decryptsql", async (req, res) => {
+    try {
+      const { key } = req.body;
 
-       // if (!key) {
-       //   return res.status(400).json({ error: "Key to decrypt is required" });
-       // }
+      // if (!key) {
+      //   return res.status(400).json({ error: "Key to decrypt is required" });
+      // }
 
-       const file_url = await transfersafe.decryptSQL(key);
+      const file_url = await transfersafe.decryptSQL(key);
 
-       return res.status(400).json({ error:(file_url) });
-     } catch (error) {
-       return res.status(400).json({ error: error.message });
-     }
-   });
+      return res.status(400).json({ error: file_url });
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
+  });
 
   app.use("/api", router);
 };

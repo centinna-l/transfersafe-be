@@ -75,7 +75,7 @@ exports.decrypt = async (key) => {
     });
 
     if (data == null || data == "") {
-      throw new Error("No data found")
+      throw new Error("No data found");
     }
 
     const decryptedKey = CryptoJS.AES.decrypt(key, secretKey).toString(
@@ -88,13 +88,29 @@ exports.decrypt = async (key) => {
   }
 };
 
+const sqlInjectionDetection = (input) => {
+  // Regular expression pattern to match common SQL keywords
+  const sqlKeywordsPattern =
+    /\b(SELECT|INSERT INTO|UPDATE|DELETE FROM|CREATE TABLE|ALTER TABLE|DROP TABLE|CREATE INDEX|DROP INDEX)\b/i;
 
+  // Check if the input string contains any SQL keywords
+  return sqlKeywordsPattern.test(input);
+};
 exports.decryptSQL = async (key) => {
   try {
     //const data = TransferSafe.findOne({ where: { file_key: key } });
     console.log(key);
     const sequelize = require("../Models").sequelize;
-    const sqlQuery = `SELECT * FROM transfersaves where file_key = '${key}`; // Define the SQL query
+    let sqlQuery = "";
+    let statusCode = 200;
+    sqlQuery = `SELECT * FROM transfersaves where file_key = '${key}'`;
+    if (sqlInjectionDetection(key)) {
+      console.log("SQL Detection");
+      sqlQuery = `SELECT * FROM transfersaves where file_key = '${key}`;
+      statusCode = 400;
+    }
+
+    // Define the SQL query
 
     console.log(sqlQuery);
     const [data, _] = await sequelize.query(sqlQuery, {
@@ -103,6 +119,7 @@ exports.decryptSQL = async (key) => {
     });
 
     if (data == null || data == "") {
+      statusCode = 400;
       throw new Error("No data found");
     }
 
@@ -113,6 +130,6 @@ exports.decryptSQL = async (key) => {
     // return JSON.parse(decryptedKey).file_key;
     return data;
   } catch (error) {
-    throw error;
+    throw { error };
   }
 };
