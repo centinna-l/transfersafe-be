@@ -100,12 +100,6 @@ exports.decrypt = async (key) => {
     if (data == null || data == "") {
       throw new Error("No data found");
     }
-
-    // const decryptedKey = CryptoJS.AES.decrypt(key, secretKey).toString(
-    //   CryptoJS.enc.Utf8
-    // );
-
-    // return JSON.parse(decryptedKey).file_key;
     removeAttribute(data, "file_key");
     return data;
   } catch (error) {
@@ -143,12 +137,7 @@ exports.decryptSQL = async (key) => {
       statusCode = 400;
     }
 
-    // Define the SQL query
-
-    console.log(sqlQuery);
-
     const data = await sequelize.query(sqlQuery, {
-      //  replacements: { key: key },
       type: sequelize.QueryTypes.SELECT,
     });
 
@@ -157,12 +146,6 @@ exports.decryptSQL = async (key) => {
       statusCode = 400;
       throw new Error("No data found");
     }
-
-    // const decryptedKey = CryptoJS.AES.decrypt(key, secretKey).toString(
-    //   CryptoJS.enc.Utf8
-    // );
-
-    // return JSON.parse(decryptedKey).file_key;
     removeAttribute(data, "file_key");
     return data;
   } catch (error) {
