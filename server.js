@@ -10,7 +10,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors());
-app.use(ipBlacklist.checkBlacklist);
 const db = require("./Models/");
 db.sequelize
   .sync()
