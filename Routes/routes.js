@@ -30,7 +30,7 @@ module.exports = (app) => {
 
       const file_url = await transfersafe.decrypt(key);
 
-      return res.json({ file_url });
+      return res.json({ data: file_url });
     } catch (error) {
       return res.status(400).json({ error: "No Data Found" });
     }
@@ -46,7 +46,7 @@ module.exports = (app) => {
 
       const file_url = await transfersafe.decryptSQL(key);
 
-      return res.status(400).json({ error: file_url });
+      return res.json({ data: file_url });
     } catch (error) {
       return res.status(400).json({ error: error.message });
     }
